@@ -1,0 +1,92 @@
+1. 
+    File Type: Python Scripts (.py).
+    Language: Python 3.13.x
+    Required Libraries:
+        pulp (Optimization solver)
+        numpy (Numerical operations)
+        pandas (Data handling & Excel export)
+        matplotlib (Charting)
+        openpyxl (Excel engine for pandas)
+Installation: If you encounter ModuleNotFoundError, run in your terminal: pip install pulp numpy pandas matplotlib openpyxl
+
+2. The data is Direct Input via Python code,To change Data, you need to edit file: parameters.py
+    Open parameters.py using a text editor or IDE (e.g., VS Code, PyCharm).
+    Locate the relevant sections and variables:
+    Problem Size:
+        T: Number of time periods (e.g., T = 8).
+        N: Set of product types (e.g., N = list(range(3)) for 3 products).
+        num_scenarios: Number of Monte Carlo scenarios (e.g., num_scenarios = 200).
+    
+    Fixed Costs & Capacity (if Fixed = True):
+===============>There is an option to choose random in range or not. Make sure to check it to chose the right way.<=========================
+        
+        C: Available disassembly capacity per period.
+        s: Setup cost per period.
+        u: Cost of adding a unit of extra capacity (overtime) per period.
+        R: Disassembly yield rate.
+        h: Holding cost per unit of component.
+        b: Backlog cost per unit of component.
+        I_0: Initial inventory of components.
+        D: External demand for components.
+        Random Costs & Capacity (if Fixed = False):
+        The values for C, s, u, R, h, b, I_0, D will be generated randomly within specified ranges.
+
+Global Constraints:
+Max_capacity: Maximum disassembly quantity for Z[t].
+Max_inventory: Maximum allowed inventory H[i][t][gamma].
+Lead Time Parameters:
+L_min: Minimum lead time for components.
+L_max: Maximum lead time for components.
+Save the parameters.py file after making changes.
+    
+    ### The value of data after the random is the same due to random seed. To keep it easy to compare. Turn off if do not need.
+
+3. MC_sampling is automatically newly generated or load from existed file when ever we run Model.py 
+
+4. How to Run the Project
+Run Model.py will export numerical results as belowed
+    "INPUT PARAMETERS PER PERIOD": A table summarizing demand, capacity, and costs for each period.
+
+    "--- Item Parameters ---": A table summarizing static parameters per product (initial inventory, yield, holding/backlog costs, min/max lead times).
+
+    "OPTIMIZATION RESULTS PER PERIOD": A table showing the optimized first-stage variables (Z, Y, O)   
+        and the expected (average across scenarios) second-stage variables (Exp_Inv_Prod_i, Exp_Back_Prod_i) for each product and period.
+
+    "Total Objective Cost": The final minimized value of the objective function.
+Run Chart_exporter.py will export numerical results and 4 chart as below:
+
+    1. decision_variables_chart.png (from Chart_exporter.py):
+        Purpose: Visualizes your production plan.
+        Lines (Red): Z[t] - Disassembly quantity over periods.
+        Bars (Orange): O[t] - Overtime quantity over periods.
+        Steps (Blue, Secondary Y-axis): Y[t] - Binary setup decision (1 = setup, 0 = no setup).
+        Interpretation: Shows when large disassembly batches occur, when overtime is used, and how often setup costs are incurred.
+
+    2. inventory_backorder_barchart.png (from Chart_exporter.py):
+        Purpose: Shows average inventory vs. backlog levels.
+            Blue Bars: Average Inventory (per item per scenario) for each period.
+            Red Bars: Average Backorder (per item per scenario) for each period.
+        Interpretation: Reveals periods with high expected inventory or expected backorders, indicating potential overstocking or shortages.
+
+    3. expected_cost_chart.png (from Chart_exporter.py):
+        Purpose: Displays the expected total cost per period.
+        Interpretation: Identifies which periods contribute most to the overall cost, often highlighting periods with high backorders or high initial production costs.
+
+    4. inventory_boxplot_all_products.png (from Chart_exporter.py):
+        Purpose: Visualizes the risk and uncertainty of inventory/backlog levels for each product.
+        Each Boxplot: Represents the distribution of Net_Inventory (Inventory - Backlog) across all 200 scenarios for a specific product in a given period.
+        Red horizontal line in box: Median value.
+        Box range: Middle 50% of scenarios.
+        Whiskers: Range of typical scenarios.
+        Black dots (Outliers): Extreme scenarios (very high inventory or very deep backorder).
+        Red dashed line (0): Zero net inventory. Below indicates backlog, above indicates inventory.
+        Interpretation: A long box indicates high uncertainty. If a box is entirely below 0, backlog is almost certain. If entirely above 0, inventory is almost certain.   
+Run sen_analysis.py for:
+    Purpose: Detailed numerical report of sensitivity tests.
+        Columns: Parameter, Factor (scaling applied), Total Cost, Avg Inventory (Qty), Avg Backlog (Qty), Total Setups (Count), Total Overtime (Qty).
+    Interpretation: Allows precise comparison of KPI changes as each parameter is scaled.
+    Sensitivity_Analysis_Chart.png (from sen_analysis.py):
+        Purpose: Graphical summary of sensitivity tests.
+        Four Panels: Each panel shows the impact of scaling one parameter (h, b, s, u) on various KPIs (Avg Inv, Avg Backlog, Total Setups, Total Overtime) and the Total Objective Cost.
+    Interpretation: Helps identify which parameters have the most significant impact on the model's decisions and overall cost, revealing system bottlenecks or cost drivers.
+📂 
